@@ -28,7 +28,7 @@
 # signify color codes.
 
 users:
-    ConspiracyWizard:
+    Notch:
         permissions:
             permissions.example: true
         groups:
