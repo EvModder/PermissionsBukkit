@@ -30,7 +30,7 @@ public final class Group {
      */
     @Deprecated
     public List<String> getPlayers() {
-        ArrayList<String> result = new ArrayList<String>();
+        ArrayList<String> result = new ArrayList<>();
         if (plugin.getNode("users") != null) {
             for (String user : plugin.getNode("users").getKeys(false)) {
                 ConfigurationSection node = plugin.getNode("users/" + user);
@@ -53,7 +53,7 @@ public final class Group {
     }
 
     public List<UUID> getPlayerUUIDs() {
-        ArrayList<UUID> result = new ArrayList<UUID>();
+        ArrayList<UUID> result = new ArrayList<>();
         if (plugin.getNode("users") != null) {
             for (String user : plugin.getNode("users").getKeys(false)) {
                 UUID uuid;
@@ -74,7 +74,7 @@ public final class Group {
     }
 
     public List<Player> getOnlinePlayers() {
-        ArrayList<Player> result = new ArrayList<Player>();
+        ArrayList<Player> result = new ArrayList<>();
         for (UUID uuid : getPlayerUUIDs()) {
             Player player = Bukkit.getServer().getPlayer(uuid);
             if (player != null && player.isOnline()) {
@@ -94,7 +94,7 @@ public final class Group {
 
     @Override
     public boolean equals(Object o) {
-        return !(o == null || !(o instanceof Group)) && name.equalsIgnoreCase(((Group) o).getName());
+        return o instanceof Group && name.equalsIgnoreCase(((Group) o).getName());
     }
 
     @Override

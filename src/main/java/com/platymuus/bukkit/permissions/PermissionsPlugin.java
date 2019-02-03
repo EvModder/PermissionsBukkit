@@ -19,6 +19,8 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.platymuus.bukkit.permissions.Constants.CONFIG_GROUPS;
+
 /**
  * Main class for PermissionsBukkit.
  */
@@ -28,7 +30,7 @@ public final class PermissionsPlugin extends JavaPlugin {
     private final PermissionsCommand commandExecutor = new PermissionsCommand(this);
     private final PermissionsTabComplete tabCompleter = new PermissionsTabComplete(this);
 
-    private final HashMap<UUID, PermissionAttachment> permissions = new HashMap<UUID, PermissionAttachment>();
+    private final HashMap<UUID, PermissionAttachment> permissions = new HashMap<>();
 
     private File configFile;
     private YamlConfiguration config;
@@ -78,7 +80,7 @@ public final class PermissionsPlugin extends JavaPlugin {
             configLoadError = true;
 
             // extract line numbers from the exception if we can
-            ArrayList<String> lines = new ArrayList<String>();
+            ArrayList<String> lines = new ArrayList<>();
             Pattern pattern = Pattern.compile("line (\\d+), column");
             Matcher matcher = pattern.matcher(ex.getMessage());
             while (matcher.find()) {
@@ -89,16 +91,16 @@ public final class PermissionsPlugin extends JavaPlugin {
             }
 
             // make a nice message
-            String msg = "Your configuration is invalid! ";
-            if (lines.size() == 0) {
-                msg += "Unable to find any line numbers.";
+            StringBuilder msg = new StringBuilder("Your configuration is invalid! ");
+            if (lines.isEmpty()) {
+                msg.append("Unable to find any line numbers.");
             } else {
-                msg += "Take a look at line(s): " + lines.get(0);
+                msg.append("Take a look at line(s): ").append(lines.get(0));
                 for (String lineNo : lines.subList(1, lines.size())) {
-                    msg += ", " + lineNo;
+                    msg.append(", ").append(lineNo);
                 }
             }
-            getLogger().severe(msg);
+            getLogger().severe(msg.toString());
 
             // save the whole error to config_error.txt
             try {
@@ -130,7 +132,7 @@ public final class PermissionsPlugin extends JavaPlugin {
     @Override
     public void saveConfig() {
         // If there's no keys (such as in the event of a load failure) don't save
-        if (config.getKeys(true).size() > 0) {
+        if (!config.getKeys(true).isEmpty()) {
             try {
                 config.save(configFile);
             } catch (IOException ex) {
@@ -162,8 +164,8 @@ public final class PermissionsPlugin extends JavaPlugin {
      * @return A Group if it exists or null otherwise.
      */
     public Group getGroup(String groupName) {
-        if (getNode("groups") != null) {
-            for (String key : getNode("groups").getKeys(false)) {
+        if (getNode(CONFIG_GROUPS) != null) {
+            for (String key : getNode(CONFIG_GROUPS).getKeys(false)) {
                 if (key.equalsIgnoreCase(groupName)) {
                     return new Group(this, key);
                 }
@@ -181,10 +183,10 @@ public final class PermissionsPlugin extends JavaPlugin {
      */
     @Deprecated
     public List<Group> getGroups(String playerName) {
-        ArrayList<Group> result = new ArrayList<Group>();
+        ArrayList<Group> result = new ArrayList<>();
         ConfigurationSection node = getUsernameNode(playerName);
         if (node != null) {
-            for (String key : node.getStringList("groups")) {
+            for (String key : node.getStringList(CONFIG_GROUPS)) {
                 result.add(new Group(this, key));
             }
         } else {
@@ -200,9 +202,9 @@ public final class PermissionsPlugin extends JavaPlugin {
      * @return The groups this player is in. May be empty.
      */
     public List<Group> getGroups(UUID player) {
-        ArrayList<Group> result = new ArrayList<Group>();
+        ArrayList<Group> result = new ArrayList<>();
         if (getNode("users/" + player) != null) {
-            for (String key : getNode("users/" + player).getStringList("groups")) {
+            for (String key : getNode("users/" + player).getStringList(CONFIG_GROUPS)) {
                 result.add(new Group(this, key));
             }
         } else {
@@ -248,9 +250,9 @@ public final class PermissionsPlugin extends JavaPlugin {
      * @return The list of groups.
      */
     public List<Group> getAllGroups() {
-        ArrayList<Group> result = new ArrayList<Group>();
-        if (getNode("groups") != null) {
-            for (String key : getNode("groups").getKeys(false)) {
+        ArrayList<Group> result = new ArrayList<>();
+        if (getNode(CONFIG_GROUPS) != null) {
+            for (String key : getNode(CONFIG_GROUPS).getKeys(false)) {
                 result.add(new Group(this, key));
             }
         }
@@ -296,8 +298,8 @@ public final class PermissionsPlugin extends JavaPlugin {
         if (childGroups.contains(group)) return;
         childGroups.add(group);
 
-        for (String key : getNode("groups").getKeys(false)) {
-            for (String parent : getNode("groups/" + key).getStringList("inheritance")) {
+        for (String key : getNode(CONFIG_GROUPS).getKeys(false)) {
+            for (String parent : getNode(CONFIG_GROUPS + "/" + key).getStringList("inheritance")) {
                 if (parent.equalsIgnoreCase(group)) {
                     fillChildGroups(childGroups, key);
                 }
@@ -311,7 +313,7 @@ public final class PermissionsPlugin extends JavaPlugin {
         // build the set of groups which are children of "group"
         // e.g. if Bob is only a member of "expert" which inherits "user", he
         // must be updated if the permissions of "user" change
-        HashSet<String> childGroups = new HashSet<String>();
+        HashSet<String> childGroups = new HashSet<>();
         fillChildGroups(childGroups, group);
         debug("Refreshing for group " + group + " (total " + childGroups.size() + " subgroups)");
 
@@ -320,7 +322,7 @@ public final class PermissionsPlugin extends JavaPlugin {
             ConfigurationSection node = getUserNode(player);
 
             // if the player isn't in the config, act like they're in default
-            List<String> groupList = (node != null) ? node.getStringList("groups") : Arrays.asList("default");
+            List<String> groupList = (node != null) ? node.getStringList(CONFIG_GROUPS) : Collections.singletonList("default");
             for (String userGroup : groupList) {
                 if (childGroups.contains(userGroup)) {
                     calculateAttachment(player);
@@ -360,12 +362,10 @@ public final class PermissionsPlugin extends JavaPlugin {
         }
 
         // make sure name field matches
-        if (sec != null) {
-            if (!player.getName().equals(sec.getString("name"))) {
-                debug("Updating name of " + player.getUniqueId() + " to: " + player.getName());
-                sec.set("name", player.getName());
-                saveConfig();
-            }
+        if (sec != null && !player.getName().equals(sec.getString("name"))) {
+            debug("Updating name of " + player.getUniqueId() + " to: " + player.getName());
+            sec.set("name", player.getName());
+            saveConfig();
         }
 
         return sec;
@@ -405,7 +405,8 @@ public final class PermissionsPlugin extends JavaPlugin {
         String firstFailure = "";
 
         // Make an attempt to autofix incorrect nesting
-        boolean fixed = false, fixedNow = true;
+        boolean fixed = false;
+        boolean fixedNow = true;
         while (fixedNow) {
             fixedNow = false;
             for (String key : node.getKeys(true)) {
@@ -413,7 +414,7 @@ public final class PermissionsPlugin extends JavaPlugin {
                     node.set(key.replace("/", "."), node.getBoolean(key));
                     node.set(key, null);
                     fixed = fixedNow = true;
-                } else if (node.isConfigurationSection(key) && node.getConfigurationSection(key).getKeys(true).size() == 0) {
+                } else if (node.isConfigurationSection(key) && node.getConfigurationSection(key).getKeys(true).isEmpty()) {
                     node.set(key, null);
                     fixed = fixedNow = true;
                 }
@@ -424,7 +425,7 @@ public final class PermissionsPlugin extends JavaPlugin {
             saveConfig();
         }
 
-        LinkedHashMap<String, Boolean> result = new LinkedHashMap<String, Boolean>();
+        LinkedHashMap<String, Boolean> result = new LinkedHashMap<>();
         // Do the actual getting of permissions
         for (String key : node.getKeys(false)) {
             if (node.isBoolean(key)) {
@@ -514,11 +515,11 @@ public final class PermissionsPlugin extends JavaPlugin {
         }
 
         String nodePath = node.getCurrentPath();
-        Map<String, Boolean> perms = new LinkedHashMap<String, Boolean>();
+        Map<String, Boolean> perms = new LinkedHashMap<>();
 
         // first, apply the player's groups (getStringList returns an empty list if not found)
         // later groups override earlier groups
-        for (String group : node.getStringList("groups")) {
+        for (String group : node.getStringList(CONFIG_GROUPS)) {
             putAll(perms, calculateGroupPermissions(group, world));
         }
 
@@ -536,19 +537,19 @@ public final class PermissionsPlugin extends JavaPlugin {
     }
 
     private Map<String, Boolean> calculateGroupPermissions(String group, String world) {
-        return calculateGroupPermissions0(new HashSet<String>(), group, world);
+        return calculateGroupPermissions0(new HashSet<>(), group, world);
     }
 
     private Map<String, Boolean> calculateGroupPermissions0(Set<String> recursionBuffer, String group, String world) {
-        String groupNode = "groups/" + group;
+        String groupNode = CONFIG_GROUPS + "/" + group;
 
         // if the group's not in the config, nothing
         if (getNode(groupNode) == null) {
-            return new LinkedHashMap<String, Boolean>();
+            return new LinkedHashMap<>();
         }
 
         recursionBuffer.add(group);
-        Map<String, Boolean> perms = new LinkedHashMap<String, Boolean>();
+        Map<String, Boolean> perms = new LinkedHashMap<>();
 
         // first apply any parent groups (see calculatePlayerPermissions for more)
         for (String parent : getNode(groupNode).getStringList("inheritance")) {

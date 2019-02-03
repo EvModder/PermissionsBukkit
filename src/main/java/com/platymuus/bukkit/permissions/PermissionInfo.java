@@ -25,7 +25,7 @@ public final class PermissionInfo {
      * @return The list of groups.
      */
     public List<Group> getGroups() {
-        ArrayList<Group> result = new ArrayList<Group>();
+        ArrayList<Group> result = new ArrayList<>();
 
         for (String key : node.getStringList(groupType)) {
             Group group = plugin.getGroup(key);
@@ -53,7 +53,7 @@ public final class PermissionInfo {
      */
     public Set<String> getWorlds() {
         if (node.getConfigurationSection("worlds") == null) {
-            return new HashSet<String>();
+            return new HashSet<>();
         }
         return node.getConfigurationSection("worlds").getKeys(false);
     }

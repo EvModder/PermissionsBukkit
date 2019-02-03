@@ -10,6 +10,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.*;
 
+import static com.platymuus.bukkit.permissions.Constants.BUILD_PERMISSION;
+
 /**
  * Listen for player-based events to keep track of players and build permissions.
  */
@@ -62,7 +64,7 @@ final class PlayerListener implements Listener {
         if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_AIR) {
             return;
         }
-        if (!event.getPlayer().hasPermission("permissions.build")) {
+        if (!event.getPlayer().hasPermission(BUILD_PERMISSION)) {
             bother(event.getPlayer());
             event.setCancelled(true);
         }
@@ -70,7 +72,7 @@ final class PlayerListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (!event.getPlayer().hasPermission("permissions.build")) {
+        if (!event.getPlayer().hasPermission(BUILD_PERMISSION)) {
             bother(event.getPlayer());
             event.setCancelled(true);
         }
@@ -78,15 +80,16 @@ final class PlayerListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-        if (!event.getPlayer().hasPermission("permissions.build")) {
+        if (!event.getPlayer().hasPermission(BUILD_PERMISSION)) {
             bother(event.getPlayer());
             event.setCancelled(true);
         }
     }
 
     private void bother(Player player) {
-        if (plugin.getConfig().getString("messages/build", "").length() > 0) {
-            String message = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages/build", ""));
+        String buildMessage = plugin.getConfig().getString("messages/build", "");
+        if (buildMessage.length() > 0) {
+            String message = ChatColor.translateAlternateColorCodes('&', buildMessage);
             player.sendMessage(message);
         }
     }
