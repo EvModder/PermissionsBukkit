@@ -1,8 +1,8 @@
 # basic info
-name: PermissionsBukkit
+name: ${name}
 main: com.platymuus.bukkit.permissions.PermissionsPlugin
 author: SpaceManiac
-website: http://dev.bukkit.org/server-mods/permbukkit/
+website: ${url}
 version: ${version}
 
 # commands
