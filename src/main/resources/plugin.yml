@@ -4,6 +4,7 @@ main: com.platymuus.bukkit.permissions.PermissionsPlugin
 author: SpaceManiac
 website: ${url}
 version: ${version}
+api-version: 1.13
 
 # commands
 commands:
