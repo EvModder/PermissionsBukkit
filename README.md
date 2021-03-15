@@ -1,5 +1,10 @@
 PermissionsBukkit
-=================
+======================
+
+Original Author: [ConspiracyWizard](https://github.com/SpaceManiac)\
+Updated by: [EvModder](https://github.com/EvModder), [warriordog](https://github.com/warriordog)\
+<br>
+
 
 A plugin providing groups and other permissions configuration for Bukkit's built-in permissions architecture.
 
@@ -36,7 +41,7 @@ Sample configuration file and more info on how the configuration is laid out fol
 # signify color codes.
 
 users:
-    ConspiracyWizard:
+    Notch:
         permissions:
             permissions.example: true
         groups:
