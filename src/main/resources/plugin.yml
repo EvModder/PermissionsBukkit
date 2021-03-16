@@ -1,4 +1,3 @@
-# basic info
 name: ${name}
 main: com.platymuus.bukkit.permissions.PermissionsPlugin
 author: SpaceManiac
@@ -6,7 +5,6 @@ website: ${url}
 version: ${version}
 api-version: 1.13
 
-# commands
 commands:
   permissions:
     aliases: [ perms, perm ]
@@ -31,7 +29,6 @@ commands:
         /<command> player setperm <player> <[world:]node> [true|false] - set a permission on a player.
         /<command> player unsetperm <player> <[world:]node> - unset a permission on a player.
 
-# permissions
 permissions:
   permissions.*:
     default: op
