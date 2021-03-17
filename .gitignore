@@ -3,6 +3,17 @@
 /.project
 /.settings
 
+# EvModder stuff
+/bin/
+/target/
+*.class
+*.un~
+.DS_Store
+*/.DS_Store
+*/*/.DS_Store
+*/*/*/.DS_Store
+*/*/*/*/.DS_Store
+
 # netbeans
 /nbproject
 /build
