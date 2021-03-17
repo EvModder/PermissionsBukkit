@@ -1,13 +1,13 @@
 name: ${name}
 main: com.platymuus.bukkit.permissions.PermissionsPlugin
-author: SpaceManiac
+authors: [SpaceManiac, warriordog, EvModder]
 website: ${url}
 version: ${version}
 api-version: 1.13
 
 commands:
   permissions:
-    aliases: [ perms, perm ]
+    aliases: [perms, perm]
     description: Commands for manipulating permissions.
     usage: |
         /<command> reload - reload the configuration from disk.
@@ -43,23 +43,32 @@ permissions:
       permissions.setrank: true
       permissions.group.*: true
       permissions.player.*: true
+
   permissions.build:
     description: Allows player to build.
     default: true
+
   permissions.help:
     description: Allows viewing of usage for /permissions.
+
   permissions.reload:
     description: Allows use of /permissions reload.
+
   permissions.about:
     description: Allows use of /permissions about.
+
   permissions.check:
     description: Allows use of /permissions check.
+
   permissions.info:
     description: Allows use of /permissions info.
+
   permissions.dump:
     description: Allows use of /permissions dump.
+
   permissions.setrank:
     description: Allows use of /permissions setrank (also requires per-group permissions).
+
   permissions.group.*:
     description: Allows use of all /permissions group commands.
     children:
@@ -68,16 +77,22 @@ permissions:
       permissions.group.players: true
       permissions.group.setperm: true
       permissions.group.unsetperm: true
+
   permissions.group.help:
     description: Allows viewing of usage for /permissions group.
+
   permissions.group.list:
     description: Allows use of /permissions group list.
+
   permissions.group.players:
     description: Allows use of /permissions group players.
+
   permissions.group.setperm:
     description: Allows use of /permissions group setperm.
+
   permissions.group.unsetperm:
     description: Allows use of /permissions group unsetperm.
+
   permissions.player.*:
     description: Allows use of all /permissions player commands.
     children:
@@ -88,18 +103,25 @@ permissions:
       permissions.player.removegroup: true
       permissions.player.setperm: true
       permissions.player.unsetperm: true
+
   permissions.player.help:
     description: Allows viewing of usage for /permissions player.
+
   permissions.player.groups:
     description: Allows use of /permissions player groups.
+
   permissions.player.setgroup:
     description: Allows use of /permissions player setgroup.
+
   permissions.player.addgroup:
     description: Allows use of /permissions player addgroup.
+
   permissions.player.removegroup:
     description: Allows use of /permissions player removegroup.
+
   permissions.player.setperm:
     description: Allows use of /permissions player setperm.
+
   permissions.player.unsetperm:
     description: Allows use of /permissions player unsetperm.
 

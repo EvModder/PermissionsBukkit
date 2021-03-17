@@ -28,29 +28,30 @@
 # signify color codes.
 
 users:
-    Notch:
-        permissions:
-            permissions.example: true
-        groups:
-        - admin
+  Notch:
+    permissions:
+      permissions.example: true
+    groups:
+    - admin
 groups:
-    default:
-        permissions:
-            permissions.build: false
-    admin:
-        permissions:
-            permissions.*: true
-        inheritance:
-        - user
-    user:
-        permissions:
-            permissions.build: true
-        worlds:
-            creative:
-                coolplugin.item: true
-        inheritance:
-        - default
+  default:
+    permissions:
+      permissions.build: false
+  admin:
+    permissions:
+      permissions.*: true
+    inheritance:
+    - user
+  user:
+    permissions:
+      permissions.build: true
+    worlds:
+      creative:
+        coolplugin.item: true
+    inheritance:
+    - default
+
 messages:
-    build: '&cYou do not have permission to build here.'
+  build: '&cYou do not have permission to build here.'
 
 debug: false
