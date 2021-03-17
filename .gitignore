@@ -5,6 +5,7 @@
 
 # EvModder stuff
 /bin/
+.gitignore
 *.class
 *.un~
 .DS_Store
