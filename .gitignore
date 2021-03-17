@@ -5,7 +5,6 @@
 
 # EvModder stuff
 /bin/
-/target/
 *.class
 *.un~
 .DS_Store
