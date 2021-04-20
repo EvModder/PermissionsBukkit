@@ -17,7 +17,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import static com.platymuus.PermissionsBukkit.Constants.CONFIG_GROUPS;
 
 /**
  * Main class for PermissionsBukkit.
@@ -143,8 +142,9 @@ public final class PermissionsPlugin extends JavaPlugin{
 	 * @return A Group if it exists or null otherwise.
 	 */
 	public Group getGroup(String groupName){
-		if(getNode(CONFIG_GROUPS) != null){
-			for(String key : getNode(CONFIG_GROUPS).getKeys(false)){
+		ConfigurationSection node = getNode("groups");
+		if(node != null){
+			for(String key : node.getKeys(false)){
 				if(key.equalsIgnoreCase(groupName)){
 					return new Group(this, key);
 				}
@@ -152,93 +152,6 @@ public final class PermissionsPlugin extends JavaPlugin{
 		}
 		return null;
 	}
-
-	/**
-	 * Returns a list of groups a player is in.
-	 *
-	 * @param playerName The name of the player.
-	 * @return The groups this player is in. May be empty.
-	 * @deprecated Use UUIDs instead.
-	 */
-	/*@Deprecated public List<Group> getGroups(String playerName){
-		ArrayList<Group> result = new ArrayList<>();
-		ConfigurationSection node = getUsernameNode(playerName);
-		if(node != null){
-			for(String key : node.getStringList(CONFIG_GROUPS)){
-				result.add(new Group(this, key));
-			}
-		}
-		else{
-			result.add(new Group(this, "default"));
-		}
-		return result;
-	}*/
-
-	/**
-	 * Returns a list of groups a player is in.
-	 *
-	 * @param player The uuid of the player.
-	 * @return The groups this player is in. May be empty.
-	 */
-	/*public List<Group> getGroups(UUID player){
-		ArrayList<Group> result = new ArrayList<>();
-		if(getNode("users/" + player) != null){
-			for(String key : getNode("users/" + player).getStringList(CONFIG_GROUPS)){
-				result.add(new Group(this, key));
-			}
-		}
-		else{
-			result.add(new Group(this, "default"));
-		}
-		return result;
-	}*/
-
-	/**
-	 * Returns permission info on the given player.
-	 *
-	 * @param playerName The name of the player.
-	 * @return A PermissionsInfo about this player.
-	 * @deprecated Use UUIDs instead.
-	 */
-	/*@Deprecated public PermissionInfo getPlayerInfo(String playerName){
-		ConfigurationSection node = getUsernameNode(playerName);
-		if(node == null){
-			return null;
-		}
-		else{
-			return new PermissionInfo(this, node, GroupType.GROUPS);
-		}
-	}*/
-
-	/**
-	 * Returns permission info on the given player.
-	 *
-	 * @param player The uuid of the player.
-	 * @return A PermissionsInfo about this player.
-	 */
-	/*public PermissionInfo getPlayerInfo(UUID player){
-		if(getNode("users/" + player) == null){
-			return null;
-		}
-		else{
-			return new PermissionInfo(this, getNode("users/" + player), GroupType.GROUPS);
-		}
-	}*/
-
-	/**
-	 * Returns a list of all defined groups.
-	 *
-	 * @return The list of groups.
-	 */
-	/*public List<Group> getAllGroups(){
-		ArrayList<Group> result = new ArrayList<>();
-		if(getNode(CONFIG_GROUPS) != null){
-			for(String key : getNode(CONFIG_GROUPS).getKeys(false)){
-				result.add(new Group(this, key));
-			}
-		}
-		return result;
-	}*/
 
 	// -- Plugin stuff
 
@@ -281,8 +194,8 @@ public final class PermissionsPlugin extends JavaPlugin{
 		if(childGroups.contains(group)) return;
 		childGroups.add(group);
 
-		for(String key : getNode(CONFIG_GROUPS).getKeys(false)){
-			for(String parent : getNode(CONFIG_GROUPS + "/" + key).getStringList("inheritance")){
+		for(String key : getNode("groups").getKeys(false)){
+			for(String parent : getNode("groups/" + key).getStringList("inheritance")){
 				if(parent.equalsIgnoreCase(group)){
 					fillChildGroups(childGroups, key);
 				}
@@ -305,7 +218,7 @@ public final class PermissionsPlugin extends JavaPlugin{
 			ConfigurationSection node = getUserNode(player);
 
 			// if the player isn't in the config, act like they're in default
-			List<String> groupList = (node != null) ? node.getStringList(CONFIG_GROUPS) : Collections.singletonList("default");
+			List<String> groupList = (node != null) ? node.getStringList("groups") : Collections.singletonList("default");
 			for(String userGroup : groupList){
 				if(childGroups.contains(userGroup)){
 					calculateAttachment(player);
@@ -503,7 +416,7 @@ public final class PermissionsPlugin extends JavaPlugin{
 
 		// first, apply the player's groups (getStringList returns an empty list if not found)
 		// later groups override earlier groups
-		for(String group : node.getStringList(CONFIG_GROUPS)){
+		for(String group : node.getStringList("groups")){
 			putAll(perms, calculateGroupPermissions(group, world));
 		}
 
@@ -525,7 +438,7 @@ public final class PermissionsPlugin extends JavaPlugin{
 	}
 
 	private Map<String, Boolean> calculateGroupPermissions0(Set<String> recursionBuffer, String group, String world){
-		String groupNode = CONFIG_GROUPS + "/" + group;
+		String groupNode = "groups/" + group;
 
 		// if the group's not in the config, nothing
 		if(getNode(groupNode) == null){

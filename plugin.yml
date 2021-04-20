@@ -2,7 +2,7 @@ name: PermissionsBukkit
 main: com.platymuus.PermissionsBukkit.PermissionsPlugin
 authors: [SpaceManiac, warriordog, EvModder]
 website: https://github.com/EvModder/PermissionsBukkit
-version: 2.6
+version: 2.7
 api-version: 1.13
 
 commands:

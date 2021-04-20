@@ -17,8 +17,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.logging.Level;
-import static com.platymuus.PermissionsBukkit.Constants.CONFIG_GROUPS;
-import static com.platymuus.PermissionsBukkit.Constants.CONFIG_PERMISSIONS;
 
 /**
  * CommandExecutor for /permissions
@@ -246,7 +244,7 @@ final class PermissionsCommand implements CommandExecutor{
 					return true;
 				}
 
-				plugin.createNode("users/" + player).set(CONFIG_GROUPS, Collections.singletonList(group));
+				plugin.createNode("users/" + player).set("groups", Collections.singletonList(group));
 				plugin.refreshForPlayer(player);
 
 				sender.sendMessage(ChatColor.GREEN + "Player " + ChatColor.WHITE + player + ChatColor.GREEN + " is now in "
@@ -279,7 +277,7 @@ final class PermissionsCommand implements CommandExecutor{
 
 				StringBuilder result = new StringBuilder();
 				String sep = "";
-				for(String key : plugin.getNode(CONFIG_GROUPS).getKeys(false)){
+				for(String key : plugin.getNode("groups").getKeys(false)){
 					result.append(sep).append(key);
 					sep = ", ";
 				}
@@ -290,7 +288,7 @@ final class PermissionsCommand implements CommandExecutor{
 				if(split.length != 3) return usage(sender, command, "group players");
 				String group = split[2];
 
-				if(plugin.getNode(CONFIG_GROUPS + "/" + group) == null){
+				if(plugin.getNode("groups/" + group) == null){
 					sender.sendMessage(ChatColor.RED + "No such group " + ChatColor.WHITE + group + ChatColor.RED + ".");
 					return true;
 				}
@@ -298,7 +296,7 @@ final class PermissionsCommand implements CommandExecutor{
 				List<String> users = new LinkedList<>();
 				for(String userKey : plugin.getNode("users").getKeys(false)){
 					ConfigurationSection node = plugin.getNode("users/" + userKey);
-					if(node.getStringList(CONFIG_GROUPS).contains(group)){
+					if(node.getStringList("groups").contains(group)){
 						try{
 							// show UUID and name if available
 							UUID uuid = UUID.fromString(userKey);
@@ -325,7 +323,7 @@ final class PermissionsCommand implements CommandExecutor{
 				String perm = split[3];
 				boolean value = (split.length != 5) || Boolean.parseBoolean(split[4]);
 
-				String node = CONFIG_PERMISSIONS;
+				String node = "permissions";
 				if(plugin.getNode("groups/" + group) == null){
 					sender.sendMessage(ChatColor.RED + "No such group " + ChatColor.WHITE + group + ChatColor.RED + ".");
 					return true;
@@ -337,7 +335,7 @@ final class PermissionsCommand implements CommandExecutor{
 					node = "worlds/" + world;
 				}
 
-				plugin.createNode(CONFIG_GROUPS + "/" + group + "/" + node).set(perm, value);
+				plugin.createNode("groups/" + group + "/" + node).set(perm, value);
 				plugin.refreshForGroup(group);
 
 				sender.sendMessage(ChatColor.GREEN + "Group " + ChatColor.WHITE + group + ChatColor.GREEN + " now has " 
@@ -350,8 +348,8 @@ final class PermissionsCommand implements CommandExecutor{
 				String group = split[2].toLowerCase();
 				String perm = split[3];
 
-				String node = CONFIG_PERMISSIONS;
-				if(plugin.getNode(CONFIG_GROUPS + "/" + group) == null){
+				String node = "permissions";
+				if(plugin.getNode("groups/" + group) == null){
 					sender.sendMessage(ChatColor.RED + "No such group " + ChatColor.WHITE + group + ChatColor.RED + ".");
 					return true;
 				}
@@ -362,7 +360,7 @@ final class PermissionsCommand implements CommandExecutor{
 					node = "worlds/" + world;
 				}
 
-				ConfigurationSection sec = plugin.createNode(CONFIG_GROUPS + "/" + group + "/" + node);
+				ConfigurationSection sec = plugin.createNode("groups/" + group + "/" + node);
 				if(!sec.contains(perm)){
 					sender.sendMessage(ChatColor.GREEN + "Group " + ChatColor.WHITE + group + ChatColor.GREEN + " did not have "
 							+ ChatColor.WHITE + perm + ChatColor.GREEN + " set.");
@@ -398,7 +396,7 @@ final class PermissionsCommand implements CommandExecutor{
 				int count = 0;
 				StringBuilder text = new StringBuilder();
 				String sep = "";
-				for(String group : plugin.getNode("users/" + player).getStringList(CONFIG_GROUPS)){
+				for(String group : plugin.getNode("users/" + player).getStringList("groups")){
 					++count;
 					text.append(sep).append(group);
 					sep = ", ";
@@ -414,7 +412,7 @@ final class PermissionsCommand implements CommandExecutor{
 				if(player == null) return true;
 				String[] groups = split[3].split(",");
 
-				plugin.createNode("users/" + player).set(CONFIG_GROUPS, Arrays.asList(groups));
+				plugin.createNode("users/" + player).set("groups", Arrays.asList(groups));
 				plugin.refreshForPlayer(player);
 
 				sender.sendMessage(ChatColor.GREEN + "Player " + ChatColor.WHITE + player + ChatColor.GREEN + " is now in "
@@ -428,14 +426,14 @@ final class PermissionsCommand implements CommandExecutor{
 				if(player == null) return true;
 				String group = split[3];
 
-				List<String> list = plugin.createNode("users/" + player).getStringList(CONFIG_GROUPS);
+				List<String> list = plugin.createNode("users/" + player).getStringList("groups");
 				if(list.contains(group)){
 					sender.sendMessage(ChatColor.GREEN + "Player " + ChatColor.WHITE + player + ChatColor.GREEN + " was already in "
 							+ ChatColor.WHITE + group + ChatColor.GREEN + ".");
 					return true;
 				}
 				list.add(group);
-				plugin.getNode("users/" + player).set(CONFIG_GROUPS, list);
+				plugin.getNode("users/" + player).set("groups", list);
 
 				plugin.refreshForPlayer(player);
 
@@ -450,14 +448,14 @@ final class PermissionsCommand implements CommandExecutor{
 				if(player == null) return true;
 				String group = split[3];
 
-				List<String> list = plugin.createNode("users/" + player).getStringList(CONFIG_GROUPS);
+				List<String> list = plugin.createNode("users/" + player).getStringList("groups");
 				if(!list.contains(group)){
 					sender.sendMessage(ChatColor.GREEN + "Player " + ChatColor.WHITE + player + ChatColor.GREEN + " was not in "
 							+ ChatColor.WHITE + group + ChatColor.GREEN + ".");
 					return true;
 				}
 				list.remove(group);
-				plugin.getNode("users/" + player).set(CONFIG_GROUPS, list);
+				plugin.getNode("users/" + player).set("groups", list);
 
 				plugin.refreshForPlayer(player);
 
@@ -473,7 +471,7 @@ final class PermissionsCommand implements CommandExecutor{
 				String perm = split[3];
 				boolean value = (split.length != 5) || Boolean.parseBoolean(split[4]);
 
-				String node = CONFIG_PERMISSIONS;
+				String node = "permissions";
 				if(perm.contains(":")){
 					String world = perm.substring(0, perm.indexOf(':'));
 					perm = perm.substring(perm.indexOf(':') + 1);
@@ -494,7 +492,7 @@ final class PermissionsCommand implements CommandExecutor{
 				if(player == null) return true;
 				String perm = split[3];
 
-				String node = CONFIG_PERMISSIONS;
+				String node = "permissions";
 				if(perm.contains(":")){
 					String world = perm.substring(0, perm.indexOf(':'));
 					perm = perm.substring(perm.indexOf(':') + 1);
