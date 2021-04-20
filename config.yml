@@ -36,7 +36,7 @@ users:
 groups:
   default:
     permissions:
-      permissions.build: false
+      permissions.example: false
   admin:
     permissions:
       permissions.*: true
@@ -44,14 +44,11 @@ groups:
     - user
   user:
     permissions:
-      permissions.build: true
+      permissions.example: true
     worlds:
       creative:
         coolplugin.item: true
     inheritance:
     - default
-
-messages:
-  build: '&cYou do not have permission to build here.'
 
 debug: false

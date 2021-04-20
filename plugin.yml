@@ -1,8 +1,8 @@
-name: ${name}
-main: com.platymuus.bukkit.permissions.PermissionsPlugin
+name: PermissionsBukkit
+main: com.platymuus.PermissionsBukkit.PermissionsPlugin
 authors: [SpaceManiac, warriordog, EvModder]
-website: ${url}
-version: ${version}
+website: https://github.com/EvModder/PermissionsBukkit
+version: 2.6
 api-version: 1.13
 
 commands:
@@ -43,10 +43,6 @@ permissions:
       permissions.setrank: true
       permissions.group.*: true
       permissions.player.*: true
-
-  permissions.build:
-    description: Allows player to build.
-    default: true
 
   permissions.help:
     description: Allows viewing of usage for /permissions.

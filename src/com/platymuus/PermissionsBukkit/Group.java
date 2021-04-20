@@ -1,7 +1,8 @@
-package com.platymuus.bukkit.permissions;
+package com.platymuus.PermissionsBukkit;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import com.platymuus.PermissionsBukkit.PermissionInfo.GroupType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -50,7 +51,7 @@ public final class Group{
 		return result;
 	}
 
-	public List<UUID> getPlayerUUIDs(){
+	public List<UUID> getPlayerUUIDs(){ // Unused / API-only
 		ArrayList<UUID> result = new ArrayList<>();
 		if(plugin.getNode("users") != null){
 			for(String user : plugin.getNode("users").getKeys(false)){
@@ -69,16 +70,16 @@ public final class Group{
 		return result;
 	}
 
-	public List<Player> getOnlinePlayers(){
+	public List<Player> getOnlinePlayers(){ // Unused / API-only
 		return getPlayerUUIDs().stream()
 				.map(uuid -> plugin.getServer().getPlayer(uuid))
 				.filter(p -> p != null && p.isOnline())
 				.collect(Collectors.toList());
 	}
 
-	public PermissionInfo getInfo(){
+	public PermissionInfo getInfo(){ // Unused / API-only
 		ConfigurationSection node = plugin.getNode("groups/" + name);
-		return node == null ? null : new PermissionInfo(plugin, node, "inheritance");
+		return node == null ? null : new PermissionInfo(plugin, node, GroupType.INHERITANCE);
 	}
 
 	@Override public boolean equals(Object o){

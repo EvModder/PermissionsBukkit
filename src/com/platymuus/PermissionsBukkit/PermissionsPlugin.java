@@ -1,4 +1,4 @@
-package com.platymuus.bukkit.permissions;
+package com.platymuus.PermissionsBukkit;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -17,24 +17,18 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import static com.platymuus.bukkit.permissions.Constants.CONFIG_GROUPS;
+import static com.platymuus.PermissionsBukkit.Constants.CONFIG_GROUPS;
 
 /**
  * Main class for PermissionsBukkit.
  */
 public final class PermissionsPlugin extends JavaPlugin{
-	private PlayerListener playerListener;
-	private PermissionsCommand commandExecutor;
-	private PermissionsTabComplete tabCompleter;
-
 	private HashMap<UUID, PermissionAttachment> permissions;
-
 	private File configFile;
 	private YamlConfiguration config;
 
 	public boolean configLoadError = false;
 
-	// -- Basic stuff
 	@Override public void onEnable(){
 		// Take care of configuration
 		permissions = new HashMap<>();
@@ -43,28 +37,17 @@ public final class PermissionsPlugin extends JavaPlugin{
 		reloadConfig();
 
 		// Register stuff
-		playerListener = new PlayerListener(this);
-		commandExecutor = new PermissionsCommand(this);
-		tabCompleter = new PermissionsTabComplete(this);
+		PlayerListener playerListener = new PlayerListener(this);
+		PermissionsCommand commandExecutor = new PermissionsCommand(this);
+		PermissionsTabComplete tabCompleter = new PermissionsTabComplete(this);
 		
 		getCommand("permissions").setExecutor(commandExecutor);
 		getCommand("permissions").setTabCompleter(tabCompleter);
 		getServer().getPluginManager().registerEvents(playerListener, this);
 
 		// Register everyone online right now
-		for(Player p : getServer().getOnlinePlayers()){
-			registerPlayer(p);
-		}
-
-		// How are you gentlemen
-		int count = getServer().getOnlinePlayers().size();
-		if(count > 0){
-			getLogger().info("Enabled successfully, " + count + " online players registered");
-		}
-		else{
-			// "0 players registered" sounds too much like an error
-			getLogger().info("Enabled successfully");
-		}
+		for(Player p : getServer().getOnlinePlayers()) registerPlayer(p);
+		getLogger().fine("Enabled successfully, " + getServer().getOnlinePlayers().size() + " online players registered");
 	}
 
 	@Override public FileConfiguration getConfig(){
@@ -148,15 +131,8 @@ public final class PermissionsPlugin extends JavaPlugin{
 
 	@Override public void onDisable(){
 		// Unregister everyone
-		for(Player p : getServer().getOnlinePlayers()){
-			unregisterPlayer(p);
-		}
-
-		// Good day to you! I said good day!
-		int count = getServer().getOnlinePlayers().size();
-		if(count > 0){
-			getLogger().info("Disabled successfully, " + count + " online players unregistered");
-		}
+		for(Player p : getServer().getOnlinePlayers()) unregisterPlayer(p);
+		getLogger().fine("Disabled successfully, " + getServer().getOnlinePlayers().size() + " online players unregistered");
 	}
 
 	// -- External API
@@ -184,7 +160,7 @@ public final class PermissionsPlugin extends JavaPlugin{
 	 * @return The groups this player is in. May be empty.
 	 * @deprecated Use UUIDs instead.
 	 */
-	@Deprecated public List<Group> getGroups(String playerName){
+	/*@Deprecated public List<Group> getGroups(String playerName){
 		ArrayList<Group> result = new ArrayList<>();
 		ConfigurationSection node = getUsernameNode(playerName);
 		if(node != null){
@@ -196,7 +172,7 @@ public final class PermissionsPlugin extends JavaPlugin{
 			result.add(new Group(this, "default"));
 		}
 		return result;
-	}
+	}*/
 
 	/**
 	 * Returns a list of groups a player is in.
@@ -204,7 +180,7 @@ public final class PermissionsPlugin extends JavaPlugin{
 	 * @param player The uuid of the player.
 	 * @return The groups this player is in. May be empty.
 	 */
-	public List<Group> getGroups(UUID player){
+	/*public List<Group> getGroups(UUID player){
 		ArrayList<Group> result = new ArrayList<>();
 		if(getNode("users/" + player) != null){
 			for(String key : getNode("users/" + player).getStringList(CONFIG_GROUPS)){
@@ -215,7 +191,7 @@ public final class PermissionsPlugin extends JavaPlugin{
 			result.add(new Group(this, "default"));
 		}
 		return result;
-	}
+	}*/
 
 	/**
 	 * Returns permission info on the given player.
@@ -224,15 +200,15 @@ public final class PermissionsPlugin extends JavaPlugin{
 	 * @return A PermissionsInfo about this player.
 	 * @deprecated Use UUIDs instead.
 	 */
-	@Deprecated public PermissionInfo getPlayerInfo(String playerName){
+	/*@Deprecated public PermissionInfo getPlayerInfo(String playerName){
 		ConfigurationSection node = getUsernameNode(playerName);
 		if(node == null){
 			return null;
 		}
 		else{
-			return new PermissionInfo(this, node, "groups");
+			return new PermissionInfo(this, node, GroupType.GROUPS);
 		}
-	}
+	}*/
 
 	/**
 	 * Returns permission info on the given player.
@@ -240,21 +216,21 @@ public final class PermissionsPlugin extends JavaPlugin{
 	 * @param player The uuid of the player.
 	 * @return A PermissionsInfo about this player.
 	 */
-	public PermissionInfo getPlayerInfo(UUID player){
+	/*public PermissionInfo getPlayerInfo(UUID player){
 		if(getNode("users/" + player) == null){
 			return null;
 		}
 		else{
-			return new PermissionInfo(this, getNode("users/" + player), "groups");
+			return new PermissionInfo(this, getNode("users/" + player), GroupType.GROUPS);
 		}
-	}
+	}*/
 
 	/**
 	 * Returns a list of all defined groups.
 	 *
 	 * @return The list of groups.
 	 */
-	public List<Group> getAllGroups(){
+	/*public List<Group> getAllGroups(){
 		ArrayList<Group> result = new ArrayList<>();
 		if(getNode(CONFIG_GROUPS) != null){
 			for(String key : getNode(CONFIG_GROUPS).getKeys(false)){
@@ -262,7 +238,7 @@ public final class PermissionsPlugin extends JavaPlugin{
 			}
 		}
 		return result;
-	}
+	}*/
 
 	// -- Plugin stuff
 
@@ -458,9 +434,7 @@ public final class PermissionsPlugin extends JavaPlugin{
 	}
 
 	protected void debug(String message){
-		if(getConfig().getBoolean("debug", false)){
-			getLogger().info("Debug: " + message);
-		}
+		if(getConfig().getBoolean("debug", false)) getLogger().info("Debug: " + message);
 	}
 
 	protected void calculateAttachment(Player player){

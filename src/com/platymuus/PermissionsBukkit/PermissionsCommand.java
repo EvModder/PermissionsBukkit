@@ -1,4 +1,4 @@
-package com.platymuus.bukkit.permissions;
+package com.platymuus.PermissionsBukkit;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -17,8 +17,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.logging.Level;
-import static com.platymuus.bukkit.permissions.Constants.CONFIG_GROUPS;
-import static com.platymuus.bukkit.permissions.Constants.CONFIG_PERMISSIONS;
+import static com.platymuus.PermissionsBukkit.Constants.CONFIG_GROUPS;
+import static com.platymuus.PermissionsBukkit.Constants.CONFIG_PERMISSIONS;
 
 /**
  * CommandExecutor for /permissions
@@ -31,6 +31,7 @@ final class PermissionsCommand implements CommandExecutor{
 		this.plugin = plugin;
 	}
 
+	@SuppressWarnings("deprecation")
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] split){
 		if(split.length < 1){
 			return !checkPerm(sender, "help") || usage(sender, command);
@@ -522,6 +523,7 @@ final class PermissionsCommand implements CommandExecutor{
 		arg = arg.toLowerCase();
 
 		// see if it resolves to a single player name
+		@SuppressWarnings("deprecation")
 		List<Player> players = plugin.getServer().matchPlayer(arg);
 		if(players.size() == 1){
 			return players.get(0).getUniqueId();

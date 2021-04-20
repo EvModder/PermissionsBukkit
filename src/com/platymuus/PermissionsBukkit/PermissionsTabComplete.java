@@ -1,4 +1,4 @@
-package com.platymuus.bukkit.permissions;
+package com.platymuus.PermissionsBukkit;
 
 import com.google.common.collect.ImmutableList;
 import org.bukkit.command.Command;

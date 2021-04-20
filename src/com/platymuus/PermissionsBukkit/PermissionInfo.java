@@ -1,4 +1,4 @@
-package com.platymuus.bukkit.permissions;
+package com.platymuus.PermissionsBukkit;
 
 import org.bukkit.configuration.ConfigurationSection;
 import java.util.*;
@@ -10,9 +10,10 @@ import java.util.stream.Collectors;
 public final class PermissionInfo{
 	private final PermissionsPlugin plugin;
 	private final ConfigurationSection node;
-	private final String groupType;
+	public enum GroupType{GROUPS, INHERITANCE};
+	private final GroupType groupType;
 
-	PermissionInfo(PermissionsPlugin plugin, ConfigurationSection node, String groupType){
+	PermissionInfo(PermissionsPlugin plugin, ConfigurationSection node, GroupType groupType){
 		this.plugin = plugin;
 		this.node = node;
 		this.groupType = groupType;
@@ -23,8 +24,8 @@ public final class PermissionInfo{
 	 *
 	 * @return The list of groups.
 	 */
-	public List<Group> getGroups(){
-		return node.getStringList(groupType).stream()
+	public List<Group> getGroups(){ // Unused / API-only
+		return node.getStringList(groupType.name().toLowerCase()).stream()
 				.map(key -> plugin.getGroup(key))
 				.filter(group -> group != null)
 				.collect(Collectors.toList());
@@ -35,7 +36,7 @@ public final class PermissionInfo{
 	 *
 	 * @return The map of permissions.
 	 */
-	public Map<String, Boolean> getPermissions(){
+	public Map<String, Boolean> getPermissions(){ // Unused / API-only
 		return plugin.getAllPerms(node.getName(), node.getCurrentPath());
 	}
 
@@ -44,10 +45,10 @@ public final class PermissionInfo{
 	 *
 	 * @return The list of worlds.
 	 */
-	public Set<String> getWorlds(){
-		return node.getConfigurationSection("worlds") == null
-			? new HashSet<>()
-			: node.getConfigurationSection("worlds").getKeys(false);
+	public Set<String> getWorlds(){ // Unused / API-only
+		return node.isConfigurationSection("worlds")
+			? node.getConfigurationSection("worlds").getKeys(false)
+			: new HashSet<>();
 	}
 
 	/**
@@ -56,7 +57,7 @@ public final class PermissionInfo{
 	 * @param world The name of the world.
 	 * @return The map of permissions.
 	 */
-	public Map<String, Boolean> getWorldPermissions(String world){
+	public Map<String, Boolean> getWorldPermissions(String world){ // Unused / API-only
 		return plugin.getAllPerms(node.getName() + ":" + world, node.getName() + "/world/" + world);
 	}
 }

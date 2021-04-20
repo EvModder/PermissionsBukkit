@@ -1,15 +1,10 @@
-package com.platymuus.bukkit.permissions;
+package com.platymuus.PermissionsBukkit;
 
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.*;
-import static com.platymuus.bukkit.permissions.Constants.BUILD_PERMISSION;
 
 /**
  * Listen for player-based events to keep track of players and build permissions.
@@ -54,42 +49,5 @@ final class PlayerListener implements Listener{
 	public void onPlayerQuit(PlayerQuitEvent event){
 		plugin.debug("Player " + event.getPlayer().getName() + " quit, unregistering...");
 		plugin.unregisterPlayer(event.getPlayer());
-	}
-
-	// Prevent doing things in the event of permissions.build: false
-
-	@EventHandler(ignoreCancelled = true)
-	public void onPlayerInteract(PlayerInteractEvent event){
-		if(event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_AIR){
-			return;
-		}
-		if(!event.getPlayer().hasPermission(BUILD_PERMISSION)){
-			bother(event.getPlayer());
-			event.setCancelled(true);
-		}
-	}
-
-	@EventHandler(ignoreCancelled = true)
-	public void onBlockPlace(BlockPlaceEvent event){
-		if(!event.getPlayer().hasPermission(BUILD_PERMISSION)){
-			bother(event.getPlayer());
-			event.setCancelled(true);
-		}
-	}
-
-	@EventHandler(ignoreCancelled = true)
-	public void onBlockBreak(BlockBreakEvent event){
-		if(!event.getPlayer().hasPermission(BUILD_PERMISSION)){
-			bother(event.getPlayer());
-			event.setCancelled(true);
-		}
-	}
-
-	private void bother(Player player){
-		String buildMessage = plugin.getConfig().getString("messages/build", "");
-		if(buildMessage.length() > 0){
-			String message = ChatColor.translateAlternateColorCodes('&', buildMessage);
-			player.sendMessage(message);
-		}
 	}
 }
