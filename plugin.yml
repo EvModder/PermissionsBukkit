@@ -2,7 +2,9 @@ name: PermissionsBukkit
 main: com.platymuus.PermissionsBukkit.PermissionsPlugin
 authors: [SpaceManiac, warriordog, EvModder]
 website: https://github.com/EvModder/PermissionsBukkit
-version: 2.7
+#2=permissions.setrank, plugin metrics tracking
+#8=update config and plugin.yml format
+version: 2.8
 api-version: 1.13
 
 commands:
