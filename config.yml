@@ -23,21 +23,21 @@
 users:
   Notch:
     permissions:
-      permissions.example: true
+      permissions.info: true
     groups:
     - admin
 groups:
   default:
     permissions:
-      permissions.example: false
+      permissions.info: false
   admin:
     permissions:
       permissions.*: true
     inheritance:
-    - user
-  user:
+    - mod
+  mod:
     permissions:
-      permissions.example: true
+      permissions.info: true
     worlds:
       creative:
         coolplugin.item: true
@@ -45,3 +45,9 @@ groups:
     - default
 
 debug: false
+command-permission-message: '&cYou do not have permissions to do that.'
+hide-namespaced-commands-in-tab-complete: false
+hide-commands-with-null-permission: false
+hide-command-aliases-in-tab-complete: false
+hide-specific-commands:
+- icanhasbukkit

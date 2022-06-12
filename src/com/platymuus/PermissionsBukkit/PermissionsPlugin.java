@@ -5,7 +5,9 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
+import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.FileUtil;
 import java.io.File;
@@ -34,6 +36,27 @@ public final class PermissionsPlugin extends JavaPlugin{
 		configFile = new File(getDataFolder(), "config.yml");
 		saveDefaultConfig();
 		reloadConfig();
+
+		// Dynamically add the children perms of "permissions.player.addgroup.*" for all defined groups
+		Permission addgroupPerm = getServer().getPluginManager().getPermission("permissions.player.addgroup");
+		Permission removegroupPerm = getServer().getPluginManager().getPermission("permissions.player.removegroup");
+		if(addgroupPerm != null && config.isConfigurationSection("groups")) try{
+			for(String groupName : config.getConfigurationSection("groups").getKeys(/*deep=*/false)){
+				// permissions.player.addgroup.<group>
+				Permission addgroupPermForGroup = new Permission(addgroupPerm.getName()+"."+groupName.toLowerCase(), 
+						"Allows use of /permissions player addgroup "+groupName, PermissionDefault.FALSE);
+				addgroupPermForGroup.addParent(addgroupPerm, true);
+				getServer().getPluginManager().addPermission(addgroupPermForGroup);
+				// permissions.player.removegroup.<group>
+				Permission removegroupPermForGroup = new Permission(removegroupPerm.getName()+"."+groupName.toLowerCase(), 
+						"Allows use of /permissions player removegroup "+groupName, PermissionDefault.FALSE);
+				removegroupPermForGroup.addParent(removegroupPerm, true);
+				getServer().getPluginManager().addPermission(removegroupPermForGroup);
+			}
+		}
+		catch(IllegalArgumentException ex){
+			// The permissions are already defined; potentially the plugin or server was reloaded
+		}
 
 		// Register stuff
 		PlayerListener playerListener = new PlayerListener(this);
@@ -372,11 +395,17 @@ public final class PermissionsPlugin extends JavaPlugin{
 		player.recalculatePermissions();
 	}
 
+	protected boolean checkGroupPermission(String group, String node){
+		Map<String, Boolean> perms = groupPermissions.get(group);
+		return perms != null && perms.getOrDefault(node, /*TODO: default perm value here?:*/false);
+	}
+
 	// -- Private stuff
 
 	private Field pField;
 
-	@SuppressWarnings("unchecked") private Map<String, Boolean> reflectMap(PermissionAttachment attachment){
+	@SuppressWarnings("unchecked")
+	private Map<String, Boolean> reflectMap(PermissionAttachment attachment){
 		try{
 			if(pField == null){
 				pField = PermissionAttachment.class.getDeclaredField("permissions");
@@ -437,6 +466,7 @@ public final class PermissionsPlugin extends JavaPlugin{
 		return calculateGroupPermissions0(new HashSet<>(), group, world);
 	}
 
+	private Map<String, Map<String, Boolean>> groupPermissions = new HashMap<>();
 	private Map<String, Boolean> calculateGroupPermissions0(Set<String> recursionBuffer, String group, String world){
 		String groupNode = "groups/" + group;
 
@@ -468,6 +498,7 @@ public final class PermissionsPlugin extends JavaPlugin{
 			putAll(perms, getAllPerms("group " + group + " world " + world, groupNode + "/worlds/" + world));
 		}
 
+		groupPermissions.put(group, perms);
 		return perms;
 	}
 }

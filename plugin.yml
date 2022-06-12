@@ -2,22 +2,21 @@ name: PermissionsBukkit
 main: com.platymuus.PermissionsBukkit.PermissionsPlugin
 authors: [SpaceManiac, warriordog, EvModder]
 website: https://github.com/EvModder/PermissionsBukkit
-#2=permissions.setrank, plugin metrics tracking
-#8=update config and plugin.yml format
-version: 2.8
+#3=ripped out setgroup (we have add/remove group) and setrank (replaced with dynamic group add/remove perms), reworked tab complete, various optimizations
+version: 3.0
 api-version: 1.13
 
 commands:
   permissions:
     aliases: [perms, perm]
     description: Commands for manipulating permissions.
+    permission: permissions.command
     usage: |
         /<command> reload - reload the configuration from disk.
         /<command> about - display general information on the plugin.
         /<command> check <node> [player] - check if a player or the sender has a permission (any plugin).
         /<command> info <node> - prints information on a specific permission.
         /<command> dump [player] [page] - prints info about a player's (or the sender's) permissions.
-        /<command> setrank <player> <group> - set a player to be in a group with per-group permissions.
         /<command> group - list group-related commands.
         /<command> group list - list all groups.
         /<command> group players <group> - list players in a group.
@@ -25,7 +24,6 @@ commands:
         /<command> group unsetperm <group> <[world:]node> - unset a permission on a group.
         /<command> player - list player-related commands.
         /<command> player groups <player> - list groups a player is in.
-        /<command> player setgroup <player> <group,...> - set a player to be in only the given groups.
         /<command> player addgroup <player> <group> - add a player to a group.
         /<command> player removegroup <player> <group> - remove a player from a group.
         /<command> player setperm <player> <[world:]node> [true|false] - set a permission on a player.
@@ -42,30 +40,35 @@ permissions:
       permissions.check: true
       permissions.info: true
       permissions.dump: true
-      permissions.setrank: true
       permissions.group.*: true
       permissions.player.*: true
 
+  permissions.command:
+    description: Allows use of /permissions.
+
   permissions.help:
     description: Allows viewing of usage for /permissions.
+    children: [permissions.command]
 
   permissions.reload:
     description: Allows use of /permissions reload.
+    children: [permissions.command]
 
   permissions.about:
     description: Allows use of /permissions about.
+    children: [permissions.command]
 
   permissions.check:
     description: Allows use of /permissions check.
+    children: [permissions.command]
 
   permissions.info:
     description: Allows use of /permissions info.
+    children: [permissions.command]
 
   permissions.dump:
     description: Allows use of /permissions dump.
-
-  permissions.setrank:
-    description: Allows use of /permissions setrank (also requires per-group permissions).
+    children: [permissions.command]
 
   permissions.group.*:
     description: Allows use of all /permissions group commands.
@@ -78,25 +81,29 @@ permissions:
 
   permissions.group.help:
     description: Allows viewing of usage for /permissions group.
+    children: [permissions.command]
 
   permissions.group.list:
     description: Allows use of /permissions group list.
+    children: [permissions.command]
 
   permissions.group.players:
     description: Allows use of /permissions group players.
+    children: [permissions.command]
 
   permissions.group.setperm:
     description: Allows use of /permissions group setperm.
+    children: [permissions.command]
 
   permissions.group.unsetperm:
     description: Allows use of /permissions group unsetperm.
+    children: [permissions.command]
 
   permissions.player.*:
     description: Allows use of all /permissions player commands.
     children:
       permissions.player.help: true
       permissions.player.groups: true
-      permissions.player.setgroup: true
       permissions.player.addgroup: true
       permissions.player.removegroup: true
       permissions.player.setperm: true
@@ -104,24 +111,24 @@ permissions:
 
   permissions.player.help:
     description: Allows viewing of usage for /permissions player.
+    children: [permissions.command]
 
   permissions.player.groups:
     description: Allows use of /permissions player groups.
-
-  permissions.player.setgroup:
-    description: Allows use of /permissions player setgroup.
+    children: [permissions.command]
 
   permissions.player.addgroup:
     description: Allows use of /permissions player addgroup.
+    children: [permissions.command]
 
   permissions.player.removegroup:
     description: Allows use of /permissions player removegroup.
+    children: [permissions.command]
 
   permissions.player.setperm:
     description: Allows use of /permissions player setperm.
+    children: [permissions.command]
 
   permissions.player.unsetperm:
     description: Allows use of /permissions player unsetperm.
-
-# for PhonicUK, a cool guy who doesn't afraid of anything
-MCMAPluginID: D6AF3772-E6F6-4467-8F3A-1E9DB74C7E50
+    children: [permissions.command]
