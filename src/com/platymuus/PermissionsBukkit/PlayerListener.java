@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -48,27 +49,42 @@ final class PlayerListener implements Listener{
 		}
 	}
 
+	private boolean noAccess(final PluginCommand pc, final Player player){
+		return pc != null && pc.getPermission() == null && (
+			!GUESS_PERM_NAME_IF_NULL || (
+				!player.hasPermission(pc.getPlugin().getName()+"."+pc.getName())
+				&& !player.hasPermission(pc.getPlugin().getName()+".command."+pc.getName())
+			)
+		);
+	}
+
 	@EventHandler public void cmdSendEvent(PlayerCommandSendEvent event){
-		plugin.getLogger().info("Player " + event.getPlayer().getName() + " is being sent commands they can see in tab-complete");
-		if(HIDE_NAMESPACED_CMDS) event.getCommands().removeIf(cmd -> cmd.contains(":"));
-		if(HIDE_NULL_PERM_CMDS) event.getCommands().removeIf(cmd -> {
-			final PluginCommand pc = plugin.getServer().getPluginCommand(cmd);
-			return pc != null && pc.getPermission() == null &&
-				(!GUESS_PERM_NAME_IF_NULL || (
-						!event.getPlayer().hasPermission(pc.getPlugin().getName()+"."+pc.getName())
-						&& !event.getPlayer().hasPermission(pc.getPlugin().getName()+".command."+pc.getName())
-					)
-				);
-		});
+		plugin.debug("Player " + event.getPlayer().getName() + " is being sent commands they can see in tab-complete");
+		if(!HIDE_NULL_PERM_CMDS && HIDE_NAMESPACED_CMDS) event.getCommands().removeIf(cmd -> cmd.contains(":"));
+		if(HIDE_NULL_PERM_CMDS){
+			final Set<String> namespaceCmdWithAccess = new HashSet<>();
+			event.getCommands().removeIf(cmd -> {
+				final int i = cmd.indexOf(':');
+				if(i == -1) return false;
+				if(!noAccess(plugin.getServer().getPluginCommand(cmd), event.getPlayer())) namespaceCmdWithAccess.add(cmd.substring(i+1));
+				return HIDE_NAMESPACED_CMDS;
+			});
+			event.getCommands().removeIf(cmd -> !namespaceCmdWithAccess.contains(cmd)
+					&& noAccess(plugin.getServer().getPluginCommand(cmd), event.getPlayer()));
+		}
 		if(HIDE_CMD_ALIASES && !aliasesAddedToHidden){
-			hiddenCmds.addAll(plugin.getServer().getCommandAliases().keySet());
+			Set<String> cmdAliases = new HashSet<>(), cmdNames = new HashSet<>();
+			cmdAliases.addAll(plugin.getServer().getCommandAliases().keySet());
 			for(Plugin p : plugin.getServer().getPluginManager().getPlugins()){
 				if(p.getDescription().getCommands() == null) continue;
 				for(String cmdName : p.getDescription().getCommands().keySet()){
-					PluginCommand cmd = p.getServer().getPluginCommand(cmdName);
-					if(cmd != null) hiddenCmds.addAll(cmd.getAliases());
+					cmdNames.add(cmdName);
+					final PluginCommand cmd = p.getServer().getPluginCommand(cmdName);
+					if(cmd != null) cmdAliases.addAll(cmd.getAliases());
 				}
 			}
+			cmdAliases.removeAll(cmdNames);
+			hiddenCmds.addAll(cmdAliases);
 			aliasesAddedToHidden = true;
 		}
 		if(!hiddenCmds.isEmpty()) event.getCommands().removeIf(cmd -> hiddenCmds.contains(cmd));

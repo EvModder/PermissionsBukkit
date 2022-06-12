@@ -8,7 +8,7 @@ api-version: 1.13
 
 commands:
   permissions:
-    aliases: [perms, perm]
+    aliases: [perm]
     description: Commands for manipulating permissions.
     permission: permissions.command
     usage: |
