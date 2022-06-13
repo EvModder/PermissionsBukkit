@@ -2,6 +2,7 @@ name: PermissionsBukkit
 main: com.platymuus.PermissionsBukkit.PermissionsPlugin
 authors: [SpaceManiac, warriordog, EvModder]
 website: https://github.com/EvModder/PermissionsBukkit
+description: An optimized permission management plugin.
 #3=ripped out setgroup (we have add/remove group) and setrank (replaced with dynamic group add/remove perms), reworked tab complete, various optimizations
 version: 3.0
 api-version: 1.13
