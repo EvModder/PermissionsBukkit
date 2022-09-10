@@ -10,7 +10,7 @@ api-version: 1.13
 commands:
   permissions:
     aliases: [perm]
-    description: Permission related commands
+    description: Permission related commands.
     permission: permissions.command
     usage: |
         /<command> reload - reload the configuration from disk.
