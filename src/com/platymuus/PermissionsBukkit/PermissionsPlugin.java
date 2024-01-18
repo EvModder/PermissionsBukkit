@@ -53,19 +53,18 @@ public final class PermissionsPlugin extends JavaPlugin{
 				removegroupPermForGroup.addParent(removegroupPerm, true);
 				getServer().getPluginManager().addPermission(removegroupPermForGroup);
 			}
+			//addgroupPerm.recalculatePermissibles();
+			//removegroupPerm.recalculatePermissibles();
 		}
 		catch(IllegalArgumentException ex){
 			// The permissions are already defined; potentially the plugin or server was reloaded
 		}
 
 		// Register stuff
-		PlayerListener playerListener = new PlayerListener(this);
-		PermissionsCommand commandExecutor = new PermissionsCommand(this);
-		PermissionsTabComplete tabCompleter = new PermissionsTabComplete(this);
-		
-		getCommand("permissions").setExecutor(commandExecutor);
-		getCommand("permissions").setTabCompleter(tabCompleter);
-		getServer().getPluginManager().registerEvents(playerListener, this);
+		getCommand("permissions").setExecutor(new PermissionsCommand(this));
+		getCommand("permissions").setTabCompleter(new PermissionsTabComplete(this));
+		getServer().getPluginManager().registerEvents(new PlayerPermChangeListener(this), this);
+		getServer().getPluginManager().registerEvents(new PlayerCommandSendListener(this), this);
 
 		// Register everyone online right now
 		for(Player p : getServer().getOnlinePlayers()) registerPlayer(p);
@@ -142,12 +141,8 @@ public final class PermissionsPlugin extends JavaPlugin{
 	@Override public void saveConfig(){
 		// If there's no keys (such as in the event of a load failure) don't save
 		if(!config.getKeys(true).isEmpty()){
-			try{
-				config.save(configFile);
-			}
-			catch(IOException ex){
-				getLogger().log(Level.SEVERE, "Failed to save configuration", ex);
-			}
+			try{config.save(configFile);}
+			catch(IOException ex){getLogger().log(Level.SEVERE, "Failed to save configuration", ex);}
 		}
 	}
 
@@ -259,6 +254,10 @@ public final class PermissionsPlugin extends JavaPlugin{
 	}
 
 	protected ConfigurationSection getNode(String node){
+		if(getConfig().isConfigurationSection(node)) return getConfig().getConfigurationSection(node);
+		node = node.toLowerCase();
+		if(getConfig().isConfigurationSection(node)) return getConfig().getConfigurationSection(node);
+
 		for(String entry : getConfig().getKeys(true)){
 			if(node.equalsIgnoreCase(entry) && getConfig().isConfigurationSection(entry)){
 				return getConfig().getConfigurationSection(entry);
@@ -268,41 +267,26 @@ public final class PermissionsPlugin extends JavaPlugin{
 	}
 
 	protected ConfigurationSection getUserNode(Player player){
-		ConfigurationSection sec = getNode("users/" + player.getUniqueId());
+		ConfigurationSection sec = getNode("users/" + player.getUniqueId());//TODO: case-insensitive username lookup
 		if(sec == null){
 			sec = getNode("users/" + player.getName());
-			if(sec != null){
-				getConfig().set(sec.getCurrentPath(), null);
-				getConfig().set("users/" + player.getUniqueId(), sec);
-				sec.set("name", player.getName());
-				debug("Migrated " + player.getName() + " to UUID " + player.getUniqueId());
-				saveConfig();
-			}
+			if(sec == null) return null;
+
+			getConfig().set(sec.getCurrentPath(), null);
+			getConfig().set("users/" + player.getUniqueId(), sec);
+			sec.set("name", player.getName());
+			debug("Migrated " + player.getName() + " to UUID " + player.getUniqueId());
+			saveConfig();
 		}
 
 		// make sure name field matches
-		if(sec != null && !player.getName().equals(sec.getString("name"))){
+		if(!player.getName().equals(sec.getString("name"))){
 			debug("Updating name of " + player.getUniqueId() + " to: " + player.getName());
 			sec.set("name", player.getName());
 			saveConfig();
 		}
 
 		return sec;
-	}
-
-	protected ConfigurationSection getUsernameNode(String name){
-		// try to look up node based on username rather than UUID
-		ConfigurationSection sec = getNode("users");
-		if(sec != null){
-			for(String child : sec.getKeys(false)){
-				ConfigurationSection node = sec.getConfigurationSection(child);
-				if(node != null && (name.equals(node.getString("name")) || name.equals("child"))){
-					// either the "name" field matches or the key matches
-					return node;
-				}
-			}
-		}
-		return null;
 	}
 
 	protected ConfigurationSection createNode(String node){
@@ -373,6 +357,18 @@ public final class PermissionsPlugin extends JavaPlugin{
 		if(getConfig().getBoolean("debug", false)) getLogger().info("Debug: " + message);
 	}
 
+	private static Field pField;
+	@SuppressWarnings("unchecked")
+	private Map<String, Boolean> reflectMap(PermissionAttachment attachment){
+		try{
+			if(pField == null){
+				pField = PermissionAttachment.class.getDeclaredField("permissions");
+				pField.setAccessible(true);
+			}
+			return (Map<String, Boolean>)pField.get(attachment);
+		}
+		catch(Exception e){throw new RuntimeException(e);}
+	}
 	protected void calculateAttachment(Player player){
 		if(player == null){
 			return;
@@ -395,40 +391,21 @@ public final class PermissionsPlugin extends JavaPlugin{
 		player.recalculatePermissions();
 	}
 
-	protected boolean checkGroupPermission(String group, String node){
-		Map<String, Boolean> perms = groupPermissions.get(group);
-		return perms != null && perms.getOrDefault(node, /*TODO: default perm value here?:*/false);
-	}
+	private Map<String, Map<String, Boolean>> groupPermissions = new HashMap<>();
+//	protected boolean checkGroupPermission(String group, String perm){
+//		Map<String, Boolean> perms = groupPermissions.get(group);
+//		return perms != null && perms.getOrDefault(perm, /*TODO: default perm value here?:*/false);
+//	}
 
 	// -- Private stuff
-
-	private Field pField;
-
-	@SuppressWarnings("unchecked")
-	private Map<String, Boolean> reflectMap(PermissionAttachment attachment){
-		try{
-			if(pField == null){
-				pField = PermissionAttachment.class.getDeclaredField("permissions");
-				pField.setAccessible(true);
-			}
-			return (Map<String, Boolean>)pField.get(attachment);
-		}
-		catch(Exception e){
-			throw new RuntimeException(e);
-		}
-	}
 
 	// normally, LinkedHashMap.put (and thus putAll) will not reorder the list
 	// if that key is already in the map, which we don't want - later puts should
 	// always be bumped to the end of the list
-	private <K, V> void put(Map<K, V> dest, K key, V value){
-		dest.remove(key);
-		dest.put(key, value);
-	}
-
 	private <K, V> void putAll(Map<K, V> dest, Map<K, V> src){
 		for(Map.Entry<K, V> entry : src.entrySet()){
-			put(dest, entry.getKey(), entry.getValue());
+			dest.remove(entry.getKey());
+			dest.put(entry.getKey(), entry.getValue());
 		}
 	}
 
@@ -462,43 +439,39 @@ public final class PermissionsPlugin extends JavaPlugin{
 		return perms;
 	}
 
-	private Map<String, Boolean> calculateGroupPermissions(String group, String world){
-		return calculateGroupPermissions0(new HashSet<>(), group, world);
-	}
+	private Map<String, Boolean> calculateGroupPermissions0(String group, String world, Set<String> recursionBuffer){
+		final Map<String, Boolean> perms = new LinkedHashMap<>();
+		final String groupNode = "groups/" + group;
 
-	private Map<String, Map<String, Boolean>> groupPermissions = new HashMap<>();
-	private Map<String, Boolean> calculateGroupPermissions0(Set<String> recursionBuffer, String group, String world){
-		String groupNode = "groups/" + group;
-
-		// if the group's not in the config, nothing
-		if(getNode(groupNode) == null){
-			return new LinkedHashMap<>();
-		}
+		// If the group's not in the config, nothing
+		if(getNode(groupNode) == null) return perms;
 
 		recursionBuffer.add(group);
-		Map<String, Boolean> perms = new LinkedHashMap<>();
 
-		// first apply any parent groups (see calculatePlayerPermissions for more)
+		// First apply any parent groups (see calculatePlayerPermissions for more)
 		for(String parent : getNode(groupNode).getStringList("inheritance")){
 			if(recursionBuffer.contains(parent)){
 				getLogger().warning("In group " + group + ": recursive inheritance from " + parent);
 				continue;
 			}
 
-			putAll(perms, calculateGroupPermissions0(recursionBuffer, parent, world));
+			putAll(perms, calculateGroupPermissions0(parent, world, recursionBuffer));
 		}
 
-		// now apply the group's permissions
+		// Now apply the group's permissions
 		if(getNode(groupNode + "/permissions") != null){
 			putAll(perms, getAllPerms("group " + group, groupNode + "/permissions"));
 		}
 
-		// now apply world-specific permissions
+		// Now apply world-specific permissions
 		if(getNode(groupNode + "/worlds/" + world) != null){
 			putAll(perms, getAllPerms("group " + group + " world " + world, groupNode + "/worlds/" + world));
 		}
 
 		groupPermissions.put(group, perms);
 		return perms;
+	}
+	private Map<String, Boolean> calculateGroupPermissions(String group, String world){
+		return calculateGroupPermissions0(group, world, new HashSet<>());
 	}
 }

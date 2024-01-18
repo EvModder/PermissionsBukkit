@@ -7,8 +7,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * A class representing a permissions group.
+/** A class representing a permissions group.
  */
 public final class Group{
 	private final PermissionsPlugin plugin;
@@ -19,14 +18,15 @@ public final class Group{
 		this.name = name;
 	}
 
-	public String getName(){
-		return name;
-	}
+	/** Get the name of the group.
+	 * @return The name of the group
+	 */
+	public String getName(){return name;}
 
 	/**
 	 * @deprecated Use UUIDs instead.
 	 */
-	@Deprecated public List<String> getPlayers(){
+	@Deprecated public List<String> getPlayers(){ // Unused / API-only
 		ArrayList<String> result = new ArrayList<>();
 		if(plugin.getNode("users") != null){
 			for(String user : plugin.getNode("users").getKeys(false)){
@@ -76,15 +76,7 @@ public final class Group{
 				.collect(Collectors.toList());
 	}
 
-	@Override public boolean equals(Object o){
-		return o instanceof Group && name.equalsIgnoreCase(((Group)o).getName());
-	}
-
-	@Override public String toString(){
-		return "Group{name=" + name + "}";
-	}
-
-	@Override public int hashCode(){
-		return name.hashCode();
-	}
+	@Override public boolean equals(Object o){return o instanceof Group && name.equalsIgnoreCase(((Group)o).getName());}
+	@Override public String toString(){return "Group{name=" + name + "}";}
+	@Override public int hashCode(){return name.hashCode();}
 }

@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permissible;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachmentInfo;
+import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginDescriptionFile;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -136,8 +137,6 @@ final class PermissionsCommand implements CommandExecutor{
 				return true;
 			case "about":
 				if(!checkPerm(sender, "about")) return true;
-
-				// plugin information
 				final PluginDescriptionFile desc = plugin.getDescription();
 				sender.sendMessage(ChatColor.GOLD + desc.getName() + ChatColor.GREEN + " version " + ChatColor.GOLD + desc.getVersion());
 				sender.sendMessage(ChatColor.GREEN + "By " + ChatColor.WHITE + String.join(ChatColor.GREEN+", "+ChatColor.WHITE, desc.getAuthors()));
@@ -159,9 +158,10 @@ final class PermissionsCommand implements CommandExecutor{
 					final boolean set = permissible.isPermissionSet(node), has = permissible.hasPermission(node);
 					final String sets = set ? " sets " : " defaults ";
 					final String perm = has ? "true" : "false";
-					sender.sendMessage(ChatColor.GREEN + "Player " + ChatColor.WHITE + name
-							+ ChatColor.GREEN + sets + ChatColor.WHITE + node + ChatColor.GREEN
-							+ " to " + ChatColor.WHITE + perm + ChatColor.GREEN + ".");
+					sender.sendMessage(name + ChatColor.GREEN + sets + ChatColor.WHITE + node
+							+ ChatColor.GREEN + " to " + ChatColor.WHITE + perm + ChatColor.GREEN + ".");
+					
+					//TODO: if unnecessarily set to true on top of already true (or false on top of already false), add * and hover
 				}
 				return true;
 			}
@@ -176,7 +176,7 @@ final class PermissionsCommand implements CommandExecutor{
 					sender.sendMessage(ChatColor.RED + "Permission " + ChatColor.WHITE + node + ChatColor.RED + " not found.");
 				}
 				else{
-					sender.sendMessage(ChatColor.GREEN + "Info on permission " + ChatColor.WHITE + perm.getName() + ChatColor.GREEN + ":");
+					sender.sendMessage(ChatColor.GREEN + "Info for \"" + ChatColor.WHITE + perm.getName() + ChatColor.GREEN + "\":");
 					sender.sendMessage(ChatColor.GREEN + "Default: " + ChatColor.WHITE + perm.getDefault());
 					if(perm.getDescription() != null && perm.getDescription().length() > 0){
 						sender.sendMessage(ChatColor.GREEN + "Description: " + ChatColor.WHITE + perm.getDescription());
@@ -185,10 +185,10 @@ final class PermissionsCommand implements CommandExecutor{
 						sender.sendMessage(ChatColor.GREEN + "Children: " + ChatColor.WHITE + perm.getChildren().size());
 					}
 					if(perm.getPermissibles() != null && !perm.getPermissibles().isEmpty()){
-						int num = 0;
+						int num = perm.getPermissibles().size();
 						int numTrue = 0;
 						for(Permissible who : perm.getPermissibles()){
-							++num;
+							plugin.getLogger().info("set on "+who.toString()+": "+who.hasPermission(perm));
 							if(who.hasPermission(perm)){
 								++numTrue;
 							}
@@ -196,6 +196,10 @@ final class PermissionsCommand implements CommandExecutor{
 						sender.sendMessage(ChatColor.GREEN + "Set on: " + ChatColor.WHITE + num
 								+ ChatColor.GREEN + " (" + ChatColor.WHITE + numTrue + ChatColor.GREEN + " true)");
 					}
+//					ArrayList<String> withPerm = new ArrayList<>(), withoutPerm = new ArrayList<>();
+//					for(String group : plugin.getNode("groups").getKeys(false)){
+//						
+//					}
 				}
 				return true;
 			}
@@ -203,39 +207,24 @@ final class PermissionsCommand implements CommandExecutor{
 				if(!checkPerm(sender, "dump")) return true;
 				if(args.length < 1 || args.length > 3) return usage(sender, command, label, subcommand);
 
-				int page;
+				int page = 1;
 				Permissible permissible;
 				if(args.length == 1){
 					permissible = sender;
-					page = 1;
 				}
 				else if(args.length == 2){
 					permissible = sender;
-					try{
-						page = Integer.parseInt(args[1]);
-					}
+					try{page = Integer.parseInt(args[1]);}
 					catch(NumberFormatException ex){
-						if(args[1].equalsIgnoreCase("-file")){
-							page = -1;
-						}
-						else{
-							permissible = plugin.getServer().getPlayer(args[1]);
-							page = 1;
-						}
+						if(args[1].equalsIgnoreCase("-file")) page = -1;
+						else permissible = plugin.getServer().getPlayer(args[1]);
 					}
 				}
 				else{
 					permissible = plugin.getServer().getPlayer(args[1]);
-					try{
-						page = Integer.parseInt(args[2]);
-					}
+					try{page = Integer.parseInt(args[2]);}
 					catch(NumberFormatException ex){
-						if(args[2].equalsIgnoreCase("-file")){
-							page = -1;
-						}
-						else{
-							page = 1;
-						}
+						page = args[2].equalsIgnoreCase("-file") ? -1 : 1;
 					}
 				}
 
@@ -257,16 +246,11 @@ final class PermissionsCommand implements CommandExecutor{
 							out.println(new Date().toString());
 
 							for(PermissionAttachmentInfo info : dump){
-								if(info.getAttachment() == null){
-									out.println(info.getPermission() + "=" + info.getValue() + " (default)");
-								}
-								else{
-									out.println(info.getPermission() + "=" + info.getValue() + " ("
-											+ info.getAttachment().getPlugin().getDescription().getName() + ")");
-								}
+								out.println(info.getPermission() + "=" + info.getValue() + " ("+
+										(info.getAttachment() == null ? "default" : info.getAttachment().getPlugin().getDescription().getName())
+								+")");
 							}
 						}
-
 						sender.sendMessage(ChatColor.GREEN + "Permissions dump written to " + ChatColor.WHITE + file);
 					}
 					catch(IOException e){
@@ -281,20 +265,22 @@ final class PermissionsCommand implements CommandExecutor{
 				if(page > numpages) page = numpages;
 				else if(page < 1) page = 1;
 
-				ChatColor g = ChatColor.GREEN, w = ChatColor.WHITE, r = ChatColor.RED;
+				ChatColor g = ChatColor.GREEN, w = ChatColor.WHITE;
+
+				//TODO: if unnecessarily set to true on top of already true (or false on top of already false), add * and hover
+				//TODO: group perms by source? /perm dump EvDoc <group/op/default> [page]
 
 				final int start = 8 * (page - 1);
 				sender.sendMessage(ChatColor.RED + "[==== " + ChatColor.GREEN + "Page " + page + " of " + numpages + ChatColor.RED + " ====]");
 				for(int i = start; i < start + 8 && i < dump.size(); ++i){
 					PermissionAttachmentInfo info = dump.get(i);
-
-					if(info.getAttachment() == null){
-						sender.sendMessage(g + "Node " + w + info.getPermission() + g + "=" + w + info.getValue() + g+ " (" + r + "default" + g + ")");
-					}
-					else{
-						sender.sendMessage(g + "Node " + w + info.getPermission() + g + "=" + w + info.getValue() + g
-								+ " (" + w + "config.yml" + g + ")");
-					}
+					Permission perm;
+					String from = info.getAttachment() != null ? ChatColor.GRAY+"config.yml"
+							: (ChatColor.RED + (
+									(perm=plugin.getServer().getPluginManager().getPermission(info.getPermission())) != null &&
+									(perm.getDefault() == PermissionDefault.OP || perm.getDefault() == PermissionDefault.NOT_OP)
+									? (perm.getDefault() == PermissionDefault.OP ? "op" : "not_op") : "default"));
+					sender.sendMessage(g + "Node " + w + info.getPermission() + g + "=" + w + info.getValue() + g+ " (" + from + g + ")");
 				}
 				return true;
 			}

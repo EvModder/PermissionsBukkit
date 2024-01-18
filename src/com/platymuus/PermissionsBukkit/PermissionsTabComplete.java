@@ -20,7 +20,7 @@ final class PermissionsTabComplete implements TabCompleter{
 	private static final List<String> BOOLEAN = ImmutableList.of("true", "false");
 	private static final List<String> ROOT_SUBS = ImmutableList.of("reload", "about", "check", "info", "dump", "group", "player");
 	private static final List<String> GROUP_SUBS = ImmutableList.of("list", "players", "setperm", "unsetperm");
-	private static final List<String> PLAYER_SUBS = ImmutableList.of("groups", "setgroup", "addgroup", "removegroup", "setperm", "unsetperm");
+	private static final List<String> PLAYER_SUBS = ImmutableList.of("groups", "addgroup", "removegroup", "setperm", "unsetperm");
 
 	private final HashSet<Permission> permSet = new HashSet<>();
 	private final ArrayList<String> permList = new ArrayList<>();
@@ -126,7 +126,7 @@ final class PermissionsTabComplete implements TabCompleter{
 					return partial(lastArg, allNodes());
 				case "dump":
 					if(!sender.hasPermission("permissions.dump")) return ImmutableList.of();
-					return null;//TODO: assumes null -> all online player names
+					return null; // Assumes null -> all online player names
 				case "group":
 					return partial(lastArg, GROUP_SUBS).stream()
 							.filter(subCmd -> sender.hasPermission("permissions.group."+subCmd)).collect(Collectors.toList());
@@ -140,7 +140,7 @@ final class PermissionsTabComplete implements TabCompleter{
 			switch(sub){
 				case "check":
 					if(args.length != 3 || !sender.hasPermission("permissions.check")) return ImmutableList.of();
-					return null;//TODO: assumes null -> all online player names
+					return null; // Assumes null -> all online player names
 				case "dump":
 					if(args.length != 3 || !lastArg.matches("^[0-9]*$") || !sender.hasPermission("permissions.dump")) return ImmutableList.of();
 					final UUID player = resolvePlayer(args[2]);
@@ -211,14 +211,13 @@ final class PermissionsTabComplete implements TabCompleter{
 		final String lastArg = args[args.length - 1];
 		/*
 		 * player groups <player> - list groups a player is in.
-		 * player setgroup <player> <group,...> - set a player to be in only the given groups.
 		 * player addgroup <player> <group> - add a player to a group.
 		 * player removegroup <player> <group> - remove a player from a group.
 		 * player setperm <player> <[world:]node> [true|false] - set a permission on a player.
 		 * player unsetperm <player> <[world:]node> - unset a permission on a player.
 		 */
 
-		final List<String> players = null;//TODO: assumes null -> all online player names
+		final List<String> players = null; // Assumes null -> all online player names
 
 		switch(sub){
 			case "groups":

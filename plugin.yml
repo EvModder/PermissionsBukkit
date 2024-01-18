@@ -4,7 +4,8 @@ authors: [SpaceManiac, warriordog, EvModder]
 website: https://github.com/EvModder/PermissionsBukkit
 description: An optimized permission management plugin.
 #3=ripped out setgroup (we have add/remove group) and setrank (replaced with dynamic group add/remove perms), reworked tab complete, various optimizations
-version: 3.0
+#3.1=PlayerCommandSend - filter what commands players see (requires 1.13+), improved cmd usgage, various optimizations
+version: 3.1
 api-version: 1.13
 
 commands:
@@ -15,27 +16,26 @@ commands:
     usage: |
         /<command> reload - reload the configuration from disk.
         /<command> about - display general information on the plugin.
-        /<command> check <node> [player] - check if a player or the sender has a permission (any plugin).
-        /<command> info <node> - prints information on a specific permission.
-        /<command> dump [player] [page] - prints info about a player's (or the sender's) permissions.
-        /<command> group - list group-related commands.
+        /<command> check <perm> [player] - check if a player has a perm.
+        /<command> info <perm> - print info for a specific perm.
+        /<command> dump [player] [page] - print list of a player's perms.
+        /<command> group - group related commands.
         /<command> group list - list all groups.
         /<command> group players <group> - list players in a group.
-        /<command> group setperm <group> <[world:]node> [true|false] - set a permission on a group.
-        /<command> group unsetperm <group> <[world:]node> - unset a permission on a group.
-        /<command> player - list player-related commands.
+        /<command> group setperm <group> <[world:]perm> [true|false] - set a permission on a group.
+        /<command> group unsetperm <group> <[world:]perm> - unset a permission on a group.
+        /<command> player - player related commands.
         /<command> player groups <player> - list groups a player is in.
         /<command> player addgroup <player> <group> - add a player to a group.
         /<command> player removegroup <player> <group> - remove a player from a group.
-        /<command> player setperm <player> <[world:]node> [true|false] - set a permission on a player.
-        /<command> player unsetperm <player> <[world:]node> - unset a permission on a player.
+        /<command> player setperm <player> <[world:]perm> [true|false] - set a permission on a player.
+        /<command> player unsetperm <player> <[world:]perm> - unset a permission on a player.
 
 permissions:
   permissions.*:
     default: op
     description: Allows use of all PermissionsBukkit administration commands.
     children:
-      permissions.help: true
       permissions.reload: true
       permissions.about: true
       permissions.check: true
@@ -46,10 +46,6 @@ permissions:
 
   permissions.command:
     description: Allows use of /permissions.
-
-  permissions.help:
-    description: Allows viewing of usage for /permissions.
-    children: [permissions.command]
 
   permissions.reload:
     description: Allows use of /permissions reload.
@@ -74,15 +70,10 @@ permissions:
   permissions.group.*:
     description: Allows use of all /permissions group commands.
     children:
-      permissions.group.help: true
       permissions.group.list: true
       permissions.group.players: true
       permissions.group.setperm: true
       permissions.group.unsetperm: true
-
-  permissions.group.help:
-    description: Allows viewing of usage for /permissions group.
-    children: [permissions.command]
 
   permissions.group.list:
     description: Allows use of /permissions group list.
@@ -103,16 +94,11 @@ permissions:
   permissions.player.*:
     description: Allows use of all /permissions player commands.
     children:
-      permissions.player.help: true
       permissions.player.groups: true
       permissions.player.addgroup: true
       permissions.player.removegroup: true
       permissions.player.setperm: true
       permissions.player.unsetperm: true
-
-  permissions.player.help:
-    description: Allows viewing of usage for /permissions player.
-    children: [permissions.command]
 
   permissions.player.groups:
     description: Allows use of /permissions player groups.
